@@ -1,0 +1,11 @@
+{
+  "name": "vuefire-auth-example",
+  "version": "0.1.0",
+  "description": "Firebase authentication example",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Chris Braddock (braddock.chris@gmail.com)",
+  "license": "MIT"
+}
