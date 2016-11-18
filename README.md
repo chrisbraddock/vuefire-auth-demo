@@ -52,11 +52,11 @@ new Vue({
 		// Cache user - an anonymously authenticated firebase.User account
 		//  - https://firebase.google.com/docs/reference/js/firebase.User
 		this.user = user
-		// Bind the Firebase 'messages' reference to this Vue instance's
-		// data.messages property via vuefire.js' $bindAsArray method
+		// Bind this instance's 'messages' property to the 'messages/${uid}'
+		// Firebase reference via vuefire.js' $bindAsArray() method
 		this.$bindAsArray('messages', firebasedb.ref('messages/' + user.uid))
-		// Note: Child components instances will have access to these
-		// properties via this.$root.user and this.$root.messages
+		// Note: Child component instances will have access to these
+		// references via this.$root.user and this.$root.messages
 	  } else {
 	    firebase.auth().signInAnonymously().catch(console.error)
 	  }
