@@ -4,7 +4,8 @@
   <title>vuefire-auth-example</title>
   <script src="https://unpkg.com/vue@2.0.7/dist/vue.js"></script>
   <script src="https://www.gstatic.com/firebasejs/3.6.1/firebase.js"></script>
-  <script src="https://unpkg.com/vuefire@1.3.0/dist/vuefire.js"></script>
+  <script src="https://unpkg.com/vuex/dist/vuex.js"></script>
+  <script src="https://unpkg.com/vuexfire/dist/vuexfire.js"></script>
 </head>
 <body>
   <div id="app">
@@ -30,8 +31,24 @@
       messagingSenderId: "925981907667"
     }).database();
 
+    var store = new Vuex.Store({
+      state: {
+        messages: [],
+        user: { uid: '' }
+      },
+      mutations: VuexFire.mutations,
+      getters: {
+        messages: function (state) { return state.messages },
+        user: function (state) { return state.user }
+      }
+    })
+
     new Vue({
       el: '#app',
+      store: store,
+      computed: Vuex.mapGetters([
+        'messages', 'user'
+      ]),
       beforeCreate: function() {
 
         // Setup Firebase onAuthStateChanged handler
@@ -40,7 +57,7 @@
         // https://firebase.google.com/docs/reference/js/firebase.auth.Auth#onAuthStateChanged
         firebase.auth().onAuthStateChanged(function(user) {
           if (user) {
-            this.user = user
+            this.$store.state.user = user
             // https://github.com/vuejs/vuefire/blob/master/src/vuefire.js#L169
             this.$bindAsArray('messages', db.ref('messages/' + user.uid))
           } else {
@@ -49,12 +66,6 @@
           }
         }.bind(this))
 
-      },
-
-      // Initialize reactive props, bind later when user is available
-      data: {
-        user: {},
-        messages: []
       },
 
       // Demo add/remove to show it all works
