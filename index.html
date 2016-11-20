@@ -13,10 +13,17 @@
     <p>uid: {{ user.uid }}</p>
     <p>message path: /messages/{{ user.uid }}</p>
     <p>num messages: {{ messages.length }}</p>
+    <input type="text" placeholder="new message title"
+           v-bind:value="newMessageTitle"
+           v-on:input="newMessageTitle = $event.target.value"/>
     <button v-if="user.uid"
-            v-on:click="addMessage">Add Message</button>
+            v-on:click="addMessage(newMessageTitle)">Add Message
+    </button>
     <ul>
-      <li v-for="message in messages"><button v-on:click="removeMessage(message)">remove</button> {{ message }}</li>
+      <li v-for="message in messages">
+        <button v-on:click="removeMessage(message['.key'])">remove</button>
+        {{ message }}
+      </li>
     </ul>
   </div>
   <script>
@@ -31,15 +38,36 @@
       messagingSenderId: "925981907667"
     }).database();
 
+    // Setup Vuex Store
     var store = new Vuex.Store({
       state: {
         messages: [],
         user: { uid: '' }
       },
-      mutations: VuexFire.mutations,
+      mutations: Object.assign({},
+        VuexFire.mutations,
+        {
+          addMessage: function ( state, { messagesRef, title } ) {
+            // https://firebase.google.com/docs/reference/js/firebase.database.Reference#push
+            messagesRef.push({ title: title })
+          },
+          removeMessage: function ( state, { messagesRef, messageKey } ) {
+            // https://firebase.google.com/docs/reference/js/firebase.database.Reference#remove
+            messagesRef.child(messageKey).remove()
+          }
+        }
+      ),
       getters: {
         messages: function (state) { return state.messages },
         user: function (state) { return state.user }
+      },
+      actions: {
+        addMessage: function ( context, payload ) {
+          context.commit('addMessage', payload)
+        },
+        removeMessage: function ( context, payload ) {
+          context.commit('removeMessage', payload)
+        }
       }
     })
 
@@ -49,6 +77,7 @@
       computed: Vuex.mapGetters([
         'messages', 'user'
       ]),
+      data() { return { newMessageTitle: '' }},
       beforeCreate: function() {
 
         // Setup Firebase onAuthStateChanged handler
@@ -70,14 +99,19 @@
 
       // Demo add/remove to show it all works
       methods: {
-        addMessage: function() {
-            // https://firebase.google.com/docs/reference/js/firebase.database.Reference#push
-            this.$firebaseRefs.messages.push({
-                text: 'new message', timestamp: Date() })
+
+        addMessage: function ( title ) {
+          this.$store.dispatch('addMessage', {
+            messagesRef: this.$firebaseRefs.messages,
+            title: title
+          })
+          this.newMessageTitle = ''
         },
-        removeMessage: function(message) {
-            // https://firebase.google.com/docs/reference/js/firebase.database.Reference#remove
-            this.$firebaseRefs.messages.child(message['.key']).remove()
+        removeMessage: function ( messageKey ) {
+          this.$store.dispatch('removeMessage', {
+            messagesRef: this.$firebaseRefs.messages,
+            messageKey
+          })
         }
       }
 
