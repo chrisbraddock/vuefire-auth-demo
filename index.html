@@ -108,7 +108,6 @@
         firebase.auth().onAuthStateChanged(function(user) {
           if (user) {
             this.$store.dispatch('setUser', user)
-            this.$store.dispatch('setUser', user)
             // not sure if it makes sense to push through an action
             this.$store.commit('setMessagesRef', {
               main: this,
